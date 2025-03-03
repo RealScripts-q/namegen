@@ -11,6 +11,7 @@
         input { padding: 10px; margin-bottom: 10px; width: 80%; }
         .description { font-size: 16px; margin-top: 20px; color: #555; }
         .hashtags { font-size: 14px; color: #555; margin-top: 15px; }
+        .video-description { font-size: 14px; color: #333; margin-top: 15px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -20,6 +21,7 @@
     <button onclick="generateTitles()">Generate Titles</button>
     <div class="results" id="results"></div>
     <div class="hashtags" id="hashtags"></div>
+    <div class="video-description" id="video-description"></div>
     
     <script>
         const randomWords = ["tips", "tricks", "fun", "guide", "hacks", "howto", "secrets", "explained", "tutorial", "advice", "lifehack", "best", "top", "new", "review", "react", "challenge", "amazing", "discover", "vlog"];
@@ -46,6 +48,11 @@
                 `Discover ${baseKeyword} Like Never Before`
             ];
             return combinations;
+        }
+
+        function generateDescription(title) {
+            const description = `${title} is an ultimate guide to mastering the art of ${title.split(' ')[0]}. This video reveals expert tips and tricks to help you become better at ${title.split(' ')[0]}. We explore various techniques, hacks, and life-changing advice that will make you more proficient. Whether you're a beginner or advanced, this video covers everything you need to know about ${title.split(' ')[0]}. Join us for detailed tutorials, helpful tips, and tricks that will transform your approach and give you the knowledge to excel. Don’t miss out on this essential guide!`;
+            return description;
         }
 
         function generateTitles() {
@@ -78,6 +85,10 @@
             // Generate hashtags
             const hashtags = generateHashtags(selectedTitle);
             document.getElementById("hashtags").innerHTML = `Suggested Hashtags:<br><p>${hashtags}</p>`;
+            
+            // Generate description
+            const description = generateDescription(selectedTitle);
+            document.getElementById("video-description").innerHTML = `Video Description:<br><p>${description}</p>`;
         }
     </script>
 </body>
