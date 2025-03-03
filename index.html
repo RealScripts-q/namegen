@@ -15,38 +15,40 @@
 </head>
 <body>
     <h1>YouTube Video Title Generator</h1>
-    <p class="description">Welcome to the YouTube Video Title Generator! Generate unique and catchy video titles for your YouTube videos based on trending keywords. Simply enter a keyword, and we will provide you with optimized titles that haven't been widely used yet. If the title is already used, we will also generate 20 hashtags for you to use in your video description!</p>
+    <p class="description">Welcome to the YouTube Video Title Generator! Generate unique and catchy video titles for your YouTube videos based on trending keywords. Simply enter a keyword, and we will provide you with optimized titles. If the title is already used, we will also generate 20 hashtags for you to use in your video description!</p>
     <input type="text" id="userName" placeholder="Enter your keyword" />
     <button onclick="generateTitles()">Generate Titles</button>
     <div class="results" id="results"></div>
     <div class="hashtags" id="hashtags"></div>
     
     <script>
-        const API_KEY = "AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM";  // Your API key
-        const REGION = "US";
         const randomWords = ["tips", "tricks", "fun", "guide", "hacks", "howto", "secrets", "explained", "tutorial", "advice", "lifehack", "best", "top", "new", "review", "react", "challenge", "amazing", "discover", "vlog"];
         
-        async function getTrendingKeywords(baseKeyword) {
-            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${baseKeyword}&type=video&regionCode=${REGION}&maxResults=5&key=${API_KEY}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.items.map(video => video.snippet.title.split(' ')[0]);
-        }
-        
-        async function checkVideoTitleUsage(title) {
-            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${title}&type=video&key=${API_KEY}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.pageInfo.totalResults;
-        }
-        
+        let existingTitles = [];
+
         function generateHashtags(title) {
             const titleWords = title.split(' ');
             const hashtags = titleWords.map(word => `#${word}`).concat(randomWords.map(word => `#${word}`)).slice(0, 20);
             return hashtags.join(' ');
         }
-        
-        async function generateTitles() {
+
+        function generateRandomTitles(baseKeyword) {
+            const combinations = [
+                `${baseKeyword} - The Ultimate Guide`,
+                `${baseKeyword} Tips and Tricks`,
+                `How to Master ${baseKeyword}`,
+                `${baseKeyword} Secrets Revealed`,
+                `The Best ${baseKeyword} Hacks`,
+                `${baseKeyword} Explained`,
+                `Everything You Need to Know About ${baseKeyword}`,
+                `Top ${baseKeyword} Tutorials`,
+                `Beginner’s Guide to ${baseKeyword}`,
+                `Discover ${baseKeyword} Like Never Before`
+            ];
+            return combinations;
+        }
+
+        function generateTitles() {
             const userName = document.getElementById("userName").value.trim();
             if (!userName) {
                 document.getElementById("results").innerHTML = "Please enter a keyword!";
@@ -54,21 +56,19 @@
             }
             
             document.getElementById("results").innerHTML = "Generating unique video titles...";
-            
-            const keywords = await getTrendingKeywords(userName);
-            const potentialTitles = keywords.map(keyword => `${userName} - The Ultimate Guide to ${keyword}`)
-                                           .concat(keywords.map(keyword => `${userName} Reveals Secrets of ${keyword}`));
-            
+
+            const potentialTitles = generateRandomTitles(userName);
             let uniqueTitles = [];
+
             for (let title of potentialTitles) {
-                const titleUsage = await checkVideoTitleUsage(title);
-                if (titleUsage === 0) {
+                if (!existingTitles.includes(title)) {
                     uniqueTitles.push(title);
+                    existingTitles.push(title);
                 }
             }
-            
+
             if (uniqueTitles.length === 0) {
-                document.getElementById("results").innerHTML = "No unique titles found, try a different keyword.";
+                document.getElementById("results").innerHTML = "All titles are already used. Try a different keyword!";
                 return;
             }
             
