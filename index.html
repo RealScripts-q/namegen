@@ -10,18 +10,21 @@
         .results { margin-top: 20px; font-weight: bold; }
         input { padding: 10px; margin-bottom: 10px; width: 80%; }
         .description { font-size: 16px; margin-top: 20px; color: #555; }
+        .hashtags { font-size: 14px; color: #555; margin-top: 15px; }
     </style>
 </head>
 <body>
     <h1>YouTube Video Title Generator</h1>
-    <p class="description">Welcome to the YouTube Video Title Generator! Generate unique and catchy video titles for your YouTube videos based on trending keywords. Simply enter a keyword, and we will provide you with optimized titles that haven't been widely used yet.</p>
+    <p class="description">Welcome to the YouTube Video Title Generator! Generate unique and catchy video titles for your YouTube videos based on trending keywords. Simply enter a keyword, and we will provide you with optimized titles that haven't been widely used yet. If the title is already used, we will also generate 20 hashtags for you to use in your video description!</p>
     <input type="text" id="userName" placeholder="Enter your keyword" />
     <button onclick="generateTitles()">Generate Titles</button>
     <div class="results" id="results"></div>
+    <div class="hashtags" id="hashtags"></div>
     
     <script>
         const API_KEY = "AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM";  // Your API key
         const REGION = "US";
+        const randomWords = ["tips", "tricks", "fun", "guide", "hacks", "howto", "secrets", "explained", "tutorial", "advice", "lifehack", "best", "top", "new", "review", "react", "challenge", "amazing", "discover", "vlog"];
         
         async function getTrendingKeywords(baseKeyword) {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${baseKeyword}&type=video&regionCode=${REGION}&maxResults=5&key=${API_KEY}`;
@@ -35,6 +38,12 @@
             const response = await fetch(url);
             const data = await response.json();
             return data.pageInfo.totalResults;
+        }
+        
+        function generateHashtags(title) {
+            const titleWords = title.split(' ');
+            const hashtags = titleWords.map(word => `#${word}`).concat(randomWords.map(word => `#${word}`)).slice(0, 20);
+            return hashtags.join(' ');
         }
         
         async function generateTitles() {
@@ -60,9 +69,15 @@
             
             if (uniqueTitles.length === 0) {
                 document.getElementById("results").innerHTML = "No unique titles found, try a different keyword.";
-            } else {
-                document.getElementById("results").innerHTML = "Unique Video Titles:<br>" + uniqueTitles.map(title => `<p>${title}</p>`).join('');
+                return;
             }
+            
+            const selectedTitle = uniqueTitles[0];  // Select the first unique title
+            document.getElementById("results").innerHTML = `Unique Video Title:<br><p>${selectedTitle}</p>`;
+            
+            // Generate hashtags
+            const hashtags = generateHashtags(selectedTitle);
+            document.getElementById("hashtags").innerHTML = `Suggested Hashtags:<br><p>${hashtags}</p>`;
         }
     </script>
 </body>
