@@ -55,6 +55,13 @@
             return description;
         }
 
+        function truncateTitle(title) {
+            if (title.length > 100) {
+                return title.slice(0, 100);  // Truncate title to 100 characters if it exceeds the limit
+            }
+            return title;
+        }
+
         function generateTitles() {
             const userName = document.getElementById("userName").value.trim();
             if (!userName) {
@@ -69,7 +76,7 @@
 
             for (let title of potentialTitles) {
                 if (!existingTitles.includes(title)) {
-                    uniqueTitles.push(title);
+                    uniqueTitles.push(truncateTitle(title));  // Apply truncation here
                     existingTitles.push(title);
                 }
             }
