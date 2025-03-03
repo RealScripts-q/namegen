@@ -21,14 +21,14 @@
         const API_KEY = "AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM";  // Your API key
         const REGION = "US";
         
-        async function getTrendingKeywords() {
-            const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=${REGION}&maxResults=5&key=${API_KEY}`;
+        async function getTrendingKeywords(baseKeyword) {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${baseKeyword}&type=video&regionCode=${REGION}&maxResults=5&key=${API_KEY}`;
             const response = await fetch(url);
             const data = await response.json();
             return data.items.map(video => video.snippet.title.split(' ')[0]);
         }
         
-        async function checkNamePopularity(name) {
+        async function checkNameTraffic(name) {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${name}&type=channel&key=${API_KEY}`;
             const response = await fetch(url);
             const data = await response.json();
@@ -42,25 +42,24 @@
                 return;
             }
             
-            document.getElementById("results").innerHTML = "Checking name popularity...";
-            const namePopularity = await checkNamePopularity(userName);
+            document.getElementById("results").innerHTML = "Checking name traffic...";
+            const nameTraffic = await checkNameTraffic(userName);
             
             let message;
-            if (namePopularity < 10) {
-                message = "This name is very rare! You might want a more recognizable name.";
-            } else if (namePopularity < 100) {
-                message = "This name is moderately popular. A good choice for uniqueness and visibility!";
+            if (nameTraffic < 10) {
+                message = "This name is very rare! Tweaking it for better visibility...";
+            } else if (nameTraffic < 100) {
+                message = "This name is moderately popular. Optimizing it for better reach...";
             } else {
-                message = "This name is quite common. Consider tweaking it for better uniqueness.";
+                message = "This name is very common. Adjusting for uniqueness...";
             }
             
-            document.getElementById("results").innerHTML = message + "<br>Generating alternative names...";
+            document.getElementById("results").innerHTML = message + "<br>Finding better alternatives...";
             
-            const keywords = await getTrendingKeywords();
-            const uniqueWords = ["Vibes", "Hub", "Zone", "Nation", "Squad", "Buzz", "Central"];
-            const suggestions = uniqueWords.map(word => `${userName}${word}`);
+            const keywords = await getTrendingKeywords(userName);
+            const modifiedNames = keywords.map(keyword => `${userName}${keyword}`).slice(0, 5);
             
-            document.getElementById("results").innerHTML += "<br>Suggested Names:<br>" + suggestions.map(name => `<p>${name}</p>`).join('');
+            document.getElementById("results").innerHTML += "<br>Optimized Names:<br>" + modifiedNames.map(name => `<p>${name}</p>`).join('');
         }
     </script>
 </body>
