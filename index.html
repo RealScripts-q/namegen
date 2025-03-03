@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Channel Name Generator | Create Unique, Catchy, and Optimized YouTube Channel Names</title>
+    <title>YouTube Video Title Generator | Create Unique and Trending Video Titles</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
         button { padding: 10px 15px; cursor: pointer; }
@@ -13,10 +13,10 @@
     </style>
 </head>
 <body>
-    <h1>YouTube Channel Name Generator</h1>
-    <p class="description">Welcome to the YouTube Channel Name Generator! Whether you're starting a new YouTube channel or looking to rebrand, this tool helps you generate unique and optimized channel names by analyzing trending keywords and the popularity of your chosen name. Simply enter your name or keyword, and we'll provide creative suggestions for you.</p>
-    <input type="text" id="userName" placeholder="Enter your name or keyword" />
-    <button onclick="generateNames()">Generate Names</button>
+    <h1>YouTube Video Title Generator</h1>
+    <p class="description">Welcome to the YouTube Video Title Generator! Generate unique and catchy video titles for your YouTube videos based on trending keywords. Simply enter a keyword, and we will provide you with optimized titles that haven't been widely used yet.</p>
+    <input type="text" id="userName" placeholder="Enter your keyword" />
+    <button onclick="generateTitles()">Generate Titles</button>
     <div class="results" id="results"></div>
     
     <script>
@@ -30,38 +30,39 @@
             return data.items.map(video => video.snippet.title.split(' ')[0]);
         }
         
-        async function checkNameTraffic(name) {
-            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${name}&type=channel&key=${API_KEY}`;
+        async function checkVideoTitleUsage(title) {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${title}&type=video&key=${API_KEY}`;
             const response = await fetch(url);
             const data = await response.json();
             return data.pageInfo.totalResults;
         }
         
-        async function generateNames() {
+        async function generateTitles() {
             const userName = document.getElementById("userName").value.trim();
             if (!userName) {
-                document.getElementById("results").innerHTML = "Please enter a name or keyword!";
+                document.getElementById("results").innerHTML = "Please enter a keyword!";
                 return;
             }
             
-            document.getElementById("results").innerHTML = "Checking name traffic...";
-            const nameTraffic = await checkNameTraffic(userName);
-            
-            let message;
-            if (nameTraffic < 10) {
-                message = "This name is very rare! Tweaking it for better visibility...";
-            } else if (nameTraffic < 100) {
-                message = "This name is moderately popular. Optimizing it for better reach...";
-            } else {
-                message = "This name is very common. Adjusting for uniqueness...";
-            }
-            
-            document.getElementById("results").innerHTML = message + "<br>Finding better alternatives...";
+            document.getElementById("results").innerHTML = "Generating unique video titles...";
             
             const keywords = await getTrendingKeywords(userName);
-            const modifiedNames = keywords.map(keyword => `${userName}${keyword}`).slice(0, 5);
+            const potentialTitles = keywords.map(keyword => `${userName} - The Ultimate Guide to ${keyword}`)
+                                           .concat(keywords.map(keyword => `${userName} Reveals Secrets of ${keyword}`));
             
-            document.getElementById("results").innerHTML += "<br>Optimized Names:<br>" + modifiedNames.map(name => `<p>${name}</p>`).join('');
+            let uniqueTitles = [];
+            for (let title of potentialTitles) {
+                const titleUsage = await checkVideoTitleUsage(title);
+                if (titleUsage === 0) {
+                    uniqueTitles.push(title);
+                }
+            }
+            
+            if (uniqueTitles.length === 0) {
+                document.getElementById("results").innerHTML = "No unique titles found, try a different keyword.";
+            } else {
+                document.getElementById("results").innerHTML = "Unique Video Titles:<br>" + uniqueTitles.map(title => `<p>${title}</p>`).join('');
+            }
         }
     </script>
 </body>
