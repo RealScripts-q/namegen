@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Name Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        button { padding: 10px 15px; cursor: pointer; }
+        .results { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>YouTube Channel Name Generator</h1>
+    <button onclick="generateNames()">Generate Names</button>
+    <div class="results" id="results"></div>
+    
+    <script>
+        const API_KEY = "AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM";  // Your API key
+        const REGION = "US";
+        
+        async function getTrendingKeywords() {
+            const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=${REGION}&maxResults=5&key=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.items.map(video => video.snippet.title.split(' ')[0]);
+        }
+        
+        async function generateNames() {
+            document.getElementById("results").innerHTML = "Generating...";
+            const keywords = await getTrendingKeywords();
+            const uniqueWords = ["Vibes", "Hub", "Zone", "Nation", "Squad", "Buzz", "Central"];
+            const suggestions = keywords.map(word => `${word}${uniqueWords[Math.floor(Math.random() * uniqueWords.length)]}`);
+            
+            document.getElementById("results").innerHTML = suggestions.map(name => `<p>${name}</p>`).join('');
+        }
+    </script>
+</body>
+</html>
