@@ -8,10 +8,12 @@
         body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
         button { padding: 10px 15px; cursor: pointer; }
         .results { margin-top: 20px; font-weight: bold; }
+        input { padding: 10px; margin-bottom: 10px; width: 80%; }
     </style>
 </head>
 <body>
     <h1>YouTube Channel Name Generator</h1>
+    <input type="text" id="userName" placeholder="Enter your name or keyword" />
     <button onclick="generateNames()">Generate Names</button>
     <div class="results" id="results"></div>
     
@@ -26,13 +28,39 @@
             return data.items.map(video => video.snippet.title.split(' ')[0]);
         }
         
+        async function checkNamePopularity(name) {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${name}&type=channel&key=${API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            return data.pageInfo.totalResults;
+        }
+        
         async function generateNames() {
-            document.getElementById("results").innerHTML = "Generating...";
+            const userName = document.getElementById("userName").value.trim();
+            if (!userName) {
+                document.getElementById("results").innerHTML = "Please enter a name or keyword!";
+                return;
+            }
+            
+            document.getElementById("results").innerHTML = "Checking name popularity...";
+            const namePopularity = await checkNamePopularity(userName);
+            
+            let message;
+            if (namePopularity < 10) {
+                message = "This name is very rare! You might want a more recognizable name.";
+            } else if (namePopularity < 100) {
+                message = "This name is moderately popular. A good choice for uniqueness and visibility!";
+            } else {
+                message = "This name is quite common. Consider tweaking it for better uniqueness.";
+            }
+            
+            document.getElementById("results").innerHTML = message + "<br>Generating alternative names...";
+            
             const keywords = await getTrendingKeywords();
             const uniqueWords = ["Vibes", "Hub", "Zone", "Nation", "Squad", "Buzz", "Central"];
-            const suggestions = keywords.map(word => `${word}${uniqueWords[Math.floor(Math.random() * uniqueWords.length)]}`);
+            const suggestions = uniqueWords.map(word => `${userName}${word}`);
             
-            document.getElementById("results").innerHTML = suggestions.map(name => `<p>${name}</p>`).join('');
+            document.getElementById("results").innerHTML += "<br>Suggested Names:<br>" + suggestions.map(name => `<p>${name}</p>`).join('');
         }
     </script>
 </body>
