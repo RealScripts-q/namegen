@@ -3,100 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Video Title Generator | Create Unique and Trending Video Titles</title>
+    <title>Upload Video to YouTube</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        button { padding: 10px 15px; cursor: pointer; }
-        .results { margin-top: 20px; font-weight: bold; }
-        input { padding: 10px; margin-bottom: 10px; width: 80%; }
-        .description { font-size: 16px; margin-top: 20px; color: #555; }
-        .hashtags { font-size: 14px; color: #555; margin-top: 15px; }
-        .video-description { font-size: 14px; color: #333; margin-top: 15px; font-weight: normal; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .upload-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .upload-btn:hover {
+            background-color: #45a049;
+        }
+
+        .status-message {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
     </style>
 </head>
 <body>
-    <h1>YouTube Video Title Generator</h1>
-    <p class="description">Welcome to the YouTube Video Title Generator! Generate unique and catchy video titles for your YouTube videos based on trending keywords. Simply enter a keyword, and we will provide you with optimized titles. If the title is already used, we will also generate 20 hashtags for you to use in your video description!</p>
-    <input type="text" id="userName" placeholder="Enter your keyword" />
-    <button onclick="generateTitles()">Generate Titles</button>
-    <div class="results" id="results"></div>
-    <div class="hashtags" id="hashtags"></div>
-    <div class="video-description" id="video-description"></div>
-    
+    <div class="container">
+        <h1>Upload Video to YouTube</h1>
+        <button id="authButton" class="upload-btn">Authorize Google Account</button>
+        <form id="uploadForm" enctype="multipart/form-data" style="display:none;">
+            <div class="form-group">
+                <label for="videoFile">Choose a video to upload</label>
+                <input type="file" id="videoFile" name="videoFile" accept="video/*" required>
+            </div>
+            <div class="form-group">
+                <button type="submit" id="uploadButton" class="upload-btn">Upload Video</button>
+            </div>
+        </form>
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script src="https://apis.google.com/js/api.js"></script>
     <script>
-        const randomWords = ["tips", "tricks", "fun", "guide", "hacks", "howto", "secrets", "explained", "tutorial", "advice", "lifehack", "best", "top", "new", "review", "react", "challenge", "amazing", "discover", "vlog"];
-        
-        let existingTitles = [];
+        const CLIENT_ID = '331493991112-huo8b3uujba9e9ah4gl1s2uc0tseof0u.apps.googleusercontent.com'; // Your Google Client ID
+        const API_KEY = 'AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM'; // Your Google API Key
+        const SCOPES = 'https://www.googleapis.com/auth/youtube.upload';
+        let GoogleAuth;
 
-        function generateHashtags(title) {
-            const titleWords = title.split(' ');
-            const hashtags = titleWords.map(word => `#${word}`).concat(randomWords.map(word => `#${word}`)).slice(0, 20);
-            return hashtags.join(' ');
+        // Load the Google API client
+        function loadClient() {
+            gapi.client.setApiKey(API_KEY);
+            gapi.client.load('https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest').then(function () {
+                console.log("YouTube API loaded");
+            });
         }
 
-        function generateRandomTitles(baseKeyword) {
-            const combinations = [
-                `${baseKeyword} - The Ultimate Guide`,
-                `${baseKeyword} Tips and Tricks`,
-                `How to Master ${baseKeyword}`,
-                `${baseKeyword} Secrets Revealed`,
-                `The Best ${baseKeyword} Hacks`,
-                `${baseKeyword} Explained`,
-                `Everything You Need to Know About ${baseKeyword}`,
-                `Top ${baseKeyword} Tutorials`,
-                `Beginner’s Guide to ${baseKeyword}`,
-                `Discover ${baseKeyword} Like Never Before`
-            ];
-            return combinations;
+        // Authenticate and load the API client
+        function handleClientLoad() {
+            gapi.load('client:auth2', function () {
+                gapi.auth2.init({
+                    client_id: CLIENT_ID
+                }).then(function (auth2) {
+                    GoogleAuth = auth2;
+                    if (GoogleAuth.isSignedIn.get()) {
+                        // If already signed in, show upload form
+                        document.getElementById('uploadForm').style.display = 'block';
+                    } else {
+                        document.getElementById('authButton').style.display = 'block';
+                    }
+                });
+            });
         }
 
-        function generateDescription(title) {
-            const description = `${title} is an ultimate guide to mastering the art of ${title.split(' ')[0]}. This video reveals expert tips and tricks to help you become better at ${title.split(' ')[0]}. We explore various techniques, hacks, and life-changing advice that will make you more proficient. Whether you're a beginner or advanced, this video covers everything you need to know about ${title.split(' ')[0]}. Join us for detailed tutorials, helpful tips, and tricks that will transform your approach and give you the knowledge to excel. Don’t miss out on this essential guide!`;
-            return description;
+        // Sign in to Google account
+        function handleAuthClick(event) {
+            GoogleAuth.signIn().then(function () {
+                document.getElementById('authButton').style.display = 'none';
+                document.getElementById('uploadForm').style.display = 'block';
+            });
         }
 
-        function truncateTitle(title) {
-            if (title.length > 100) {
-                return title.slice(0, 100);  // Truncate title to 100 characters if it exceeds the limit
-            }
-            return title;
-        }
-
-        function generateTitles() {
-            const userName = document.getElementById("userName").value.trim();
-            if (!userName) {
-                document.getElementById("results").innerHTML = "Please enter a keyword!";
-                return;
-            }
-            
-            document.getElementById("results").innerHTML = "Generating unique video titles...";
-
-            const potentialTitles = generateRandomTitles(userName);
-            let uniqueTitles = [];
-
-            for (let title of potentialTitles) {
-                if (!existingTitles.includes(title)) {
-                    uniqueTitles.push(truncateTitle(title));  // Apply truncation here
-                    existingTitles.push(title);
+        // Upload video to YouTube
+        function uploadVideo(file) {
+            const statusMessage = document.getElementById('statusMessage');
+            const metadata = {
+                snippet: {
+                    title: 'Uploaded from JavaScript',
+                    description: 'A video uploaded from JavaScript using YouTube API',
+                    tags: ['YouTube API', 'video upload'],
+                },
+                status: {
+                    privacyStatus: 'private',
                 }
-            }
+            };
 
-            if (uniqueTitles.length === 0) {
-                document.getElementById("results").innerHTML = "All titles are already used. Try a different keyword!";
-                return;
-            }
-            
-            const selectedTitle = uniqueTitles[0];  // Select the first unique title
-            document.getElementById("results").innerHTML = `Unique Video Title:<br><p>${selectedTitle}</p>`;
-            
-            // Generate hashtags
-            const hashtags = generateHashtags(selectedTitle);
-            document.getElementById("hashtags").innerHTML = `Suggested Hashtags:<br><p>${hashtags}</p>`;
-            
-            // Generate description
-            const description = generateDescription(selectedTitle);
-            document.getElementById("video-description").innerHTML = `Video Description:<br><p>${description}</p>`;
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const request = gapi.client.youtube.videos.insert({
+                part: 'snippet,status',
+                resource: metadata,
+                media: {
+                    body: file
+                }
+            });
+
+            request.execute(function (response) {
+                if (response.error) {
+                    statusMessage.innerHTML = "Error uploading video: " + response.error.message;
+                    statusMessage.classList.add('error');
+                } else {
+                    statusMessage.innerHTML = "Video uploaded successfully!";
+                    statusMessage.classList.add('success');
+                }
+            });
         }
+
+        // Handle file selection and video upload
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const videoFile = document.getElementById('videoFile').files[0];
+            if (videoFile) {
+                uploadVideo(videoFile);
+            }
+        });
+
+        // Initialize the Google API client
+        window.onload = function () {
+            handleClientLoad();
+            document.getElementById('authButton').addEventListener('click', handleAuthClick);
+        };
     </script>
 </body>
 </html>
