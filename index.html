@@ -6,6 +6,24 @@
     <title>Upload Video to YouTube</title>
     <style>
         /* Add your styling here */
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .upload-btn {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .status-message {
+            margin-top: 20px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -26,9 +44,10 @@
 
     <script src="https://apis.google.com/js/api.js"></script>
     <script>
-        const CLIENT_ID = '331493991112-huo8b3uujba9e9ah4gl1s2uc0tseof0u.apps.googleusercontent.com'; // Your Google Client ID
-        const API_KEY = 'AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM'; // Your Google API Key
+        const CLIENT_ID = '331493991112-0o3shepfun2the0p1b9ie92k3pst6b0p.apps.googleusercontent.com';  // Your Google Client ID
+        const API_KEY = 'AIzaSyBkPGe5Omx22wstG3ISozc1XkFjqqY5idM';  // Your Google API Key
         const SCOPES = 'https://www.googleapis.com/auth/youtube.upload';
+        const REDIRECT_URI = 'https://realscripts-q.github.io/namegen/';
         let GoogleAuth;
 
         // Load the Google API client
@@ -43,7 +62,8 @@
         function handleClientLoad() {
             gapi.load('client:auth2', function () {
                 gapi.auth2.init({
-                    client_id: CLIENT_ID
+                    client_id: CLIENT_ID,
+                    redirect_uri: REDIRECT_URI
                 }).then(function (auth2) {
                     GoogleAuth = auth2;
                     if (GoogleAuth.isSignedIn.get()) {
